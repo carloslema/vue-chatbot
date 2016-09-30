@@ -3,7 +3,12 @@
 		<div class="chat-content">
 			<ul class="entryHub" :style="entryHubPositionCalculated">
 				<transition-group name="entryFade">
-					<li class="entry" :key="entry.message" v-for="entry in entries" :class="{'userMessage': entry.sender == userName }">
+					<li 
+						class="entry" 
+						:key="entry.message" 
+						v-for="entry in entries"
+						:class="{'userMessage': entry.sender == userName }"
+					>
 						<span class="sender">{{entry.sender}}</span>
 						<div class="messageContents">
 							<span class="messageText">{{entry.message}}</span>
@@ -24,14 +29,17 @@
 
 <script>
 import bus from '../events/EventBus.js'
+// import Vue from 'vue'
 
 export default {
+	props: {
+		botName: { type: String, default: 'Botzão' }
+	},
 	data () {
 		return {
-			botName: 'Noxi',
 			userName: 'Você',
 			entries: [],
-			firstMessage: 'Olá, eu sou o Noxi e vou conversar com você. O que você quer saber de mim?',
+			firstMessage: 'Olá, eu sou o ' + this.botName + ' e vou conversar com você. O que você quer saber de mim?',
 			currentUserMessage: '',
 			botDidNotUnderstand: [
 				'Desculpe, não entendi muito bem o que disse.',
@@ -69,10 +77,19 @@ export default {
 			if (message == null) {
 				message = this.botDidNotUnderstand[Math.floor(Math.random() * this.botDidNotUnderstand.length)]
 			}
-			setTimeout(() => {
-				this.entries.push({ sender, message })
-				// this.entryHubPosition = this.entryHubPosition + 85
-			}, 1000)
+			setTimeout(() => { this.entries.push({ sender, message }) }, 1000)
+			// let i = 0
+		 //    let interval = setInterval(() => {
+		 //    	let item = this.entries[this.entries.length - 1]
+		 //    	let m = item.message += message.charAt(i)
+		 //        Vue.set(item, 'message', m)
+		 //        i++
+		 //    	console.log(this.entries[this.entries.length - 1].message)
+		 //        if (i > message.length) {
+		 //            clearInterval(interval)
+		 //        }
+		 //    }, 50)
+			// this.entryHubPosition = this.entryHubPosition + 85
 		},
 		userSendMessage (event) {
 			let msg = this.currentUserMessage
@@ -202,7 +219,7 @@ export default {
 	    outline: 0 none;
 	}
 	.entryFade-enter-active, .entryFade-leave-active {
-	  transition: opacity 1s ease;
+	  transition: opacity 0.3s ease;
 	}
 	.entryFade-enter, .entryFade-leave-active {
 	  opacity: 0;

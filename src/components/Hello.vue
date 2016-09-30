@@ -10,9 +10,12 @@
 import bus from '../events/EventBus.js'
 
 export default {
+  props: {
+    botName: { type: String, default: 'Botzão' }
+  },
   data () {
     return {
-      msg: 'Oi! Eu sou o Noxi.',
+      msg: 'Oi! Me chamo ' + this.botName + '.',
       letsBegin: 'Vamos começar?'
     }
   },
@@ -31,7 +34,7 @@ export default {
   	chatWindowOpenedOnce () {
   		setTimeout(() => {
 	        this.msg = ''
-	  		this.letsBegin = 'Converse com o Noxi sobre sua vida.'
+	  		this.letsBegin = 'Converse com o ' + this.botName + ' sobre sua vida.'
 	    }, 1000)
   	}
   }

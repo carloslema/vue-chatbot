@@ -11,7 +11,10 @@
     "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {
-    "vue": "^2.0.0-rc.8"
+    "lodash": "^4.16.2",
+    "style-loader": "^0.13.1",
+    "vue": "^2.0.0-rc.8",
+    "vue-style-loader": "^1.0.0"
   },
   "devDependencies": {
     "autoprefixer": "^6.4.0",

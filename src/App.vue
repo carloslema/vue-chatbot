@@ -1,10 +1,10 @@
 <template>
   <div id="app">
     <transition name="helloTrans">
-      <hello v-show="helloIsOpen" botName="this.botName"></hello>
+      <hello v-show="helloIsOpen" :bot-name="this.botName"></hello>
     </transition>
     <transition name="chatwindowTrans">
-      <chat-window v-if="chatIsOpen" botName="this.botName"></chat-window>
+      <chat-window v-if="chatIsOpen" :bot-name="this.botName"></chat-window>
     </transition>
   </div>
 </template>
@@ -17,7 +17,7 @@ import bus from './events/EventBus.js'
 export default {
   data () {
     return {
-      botName: 'Noxi',
+      botName: 'Botzão',
       helloIsOpen: false,
       chatIsOpen: false
     }
