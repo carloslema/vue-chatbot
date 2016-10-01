@@ -1,25 +1,39 @@
 <template>
 	<div class="chat">
 		<div class="chat-content">
-			<ul class="entryHub" :style="entryHubPositionCalculated">
-				<transition-group name="entryFade">
-					<li 
-						class="entry" 
-						:key="entry.message" 
-						v-for="entry in entries"
-						:class="{'userMessage': entry.sender == userName }"
-					>
-						<span class="sender">{{entry.sender}}</span>
-						<div class="messageContents">
-							<span class="messageText">{{entry.message}}</span>
+			<ul ref="chatOldMessages" class="chat-oldMessages">
+				<li 
+					class="chat-message" 
+					:key="entry.message" 
+					v-for="entry in oldEntries"
+					:class="{'is-user': entry.sender == userName, 'is-bot': entry.sender == botName }"
+				>
+					<span class="sender">{{entry.sender}}</span>
+					<div class="messageContents">
+						<span class="messageText">{{entry.message}}</span>
+					</div>
+				</li>
+			</ul>
+			<ul class="chat-messages">
+				<li 
+					class="chat-message is-last" 
+					:key="entry.message" 
+					v-for="entry in entries"
+					:class="{'is-user': entry.sender == userName, 'is-bot': entry.sender == botName }"
+				>
+					<span class="sender">{{entry.sender}}</span>
+					<div class="messageContents">
+						<span class="messageText">{{entry.message}}</span>
+						<div class="chat-prompts">
+							<button v-for="prompt in entry.prompts" @click="promptMessage(prompt)">{{prompt}}</button>
 						</div>
-					</li>
-				</transition-group>
+					</div>
+				</li>
 			</ul>
 			<div class="inputContainer">
 				<span class="inputLabel">Pergunte</span>
 				<div class="chat-inputform">
-					<input class="chat-input" type="text" @keyup.enter="userSendMessage" v-model="currentUserMessage" />
+					<input ref="chatInput" class="chat-input" type="text" @keyup.enter="userSendMessage" v-model="currentUserMessage" />
 				</div>
 			</div>
 		</div>
@@ -29,7 +43,8 @@
 
 <script>
 import bus from '../events/EventBus.js'
-// import Vue from 'vue'
+import Vue from 'vue'
+import _ from 'lodash'
 
 export default {
 	props: {
@@ -39,6 +54,7 @@ export default {
 		return {
 			userName: 'Você',
 			entries: [],
+			oldEntries: [],
 			firstMessage: 'Olá, eu sou o ' + this.botName + ' e vou conversar com você. O que você quer saber de mim?',
 			currentUserMessage: '',
 			botDidNotUnderstand: [
@@ -46,56 +62,83 @@ export default {
 				'Não sei do que você está falando.',
 				'Pode tentar dizer algo mais coerente?'
 			],
-			entryHubPosition: 85
+			botIsWriting: false,
+			botTypingSpeed: 75,
+			botPauseOnPunctuation: 300
 		}
 	},
 	mounted () {
+		this.$refs.chatInput.focus()
 		this.pushBotEntry(this.firstMessage)
 		bus.$emit('CHATWINDOW-OPENED-ONCE')
-	},
-	computed: {
-		entryHubPositionCalculated () {
-			return 'bottom: ' + this.entryHubPosition + 'px'
-		}
 	},
 	methods: {
 		pushUserEntry (message) {
 			let sender = this.userName
 			let answer = null
-
+			let prompts = []
+			this.oldEntries = this.oldEntries.concat(this.entries)
+			this.entries = []
 			this.entries.push({ sender, message })
-			// this.entryHubPosition = this.entryHubPosition + 85
 
 			if (message.indexOf('teste') >= 0) {
 				answer = 'Que bom que você me testou! Em breve ficarei mais inteligente.'
+				prompts = ['Legal!', 'Problema seu.']
 			}
-
-			this.pushBotEntry(answer)
+			this.$nextTick(() => {
+				this.$refs.chatOldMessages.scrollTop = this.$refs.chatOldMessages.scrollHeight
+			})
+			this.pushBotEntry(answer, prompts)
 		},
 		pushBotEntry (message = null, prompts) {
 			let sender = this.botName
+
+			this.botIsWriting = true
+
 			if (message == null) {
 				message = this.botDidNotUnderstand[Math.floor(Math.random() * this.botDidNotUnderstand.length)]
 			}
-			setTimeout(() => { this.entries.push({ sender, message }) }, 1000)
-			// let i = 0
-		 //    let interval = setInterval(() => {
-		 //    	let item = this.entries[this.entries.length - 1]
-		 //    	let m = item.message += message.charAt(i)
-		 //        Vue.set(item, 'message', m)
-		 //        i++
-		 //    	console.log(this.entries[this.entries.length - 1].message)
-		 //        if (i > message.length) {
-		 //            clearInterval(interval)
-		 //        }
-		 //    }, 50)
-			// this.entryHubPosition = this.entryHubPosition + 85
+			setTimeout(() => {
+				this.entries.push({ sender, message: '', prompts: [] })
+		    	let item = this.entries[this.entries.length - 1]
+		        this.writeMessage(item, message, 0, prompts)
+			}, 500)
 		},
-		userSendMessage (event) {
-			let msg = this.currentUserMessage
+		writeMessage (item, message, i, prompts) {
+			let rand = Math.floor(Math.random() * this.botTypingSpeed)
+			let m = item.message += message.charAt(i)
+			let punctuation = ['.', ',', '!', '?']
 
-			this.pushUserEntry(msg)
-			this.currentUserMessage = ''
+			_.forEach(punctuation, (d) => {
+				if (m.charAt(m.length - 1) === d) rand = this.botPauseOnPunctuation
+			})
+
+			setTimeout(() => {
+				this.commitBotPartialMessage(item, m)
+				i++
+		        if (i <= message.length) {
+		            this.writeMessage(item, message, i, prompts)
+		        } else {
+		        	this.botIsWriting = false
+		        	_.forEach(prompts, (d) => {
+		        		item.prompts.push(d)
+		        	})
+		        }
+			}, rand)
+		},
+		commitBotPartialMessage (item, message) {
+	    	Vue.set(item, 'message', message)
+		},
+		userSendMessage () {
+			let msg = this.currentUserMessage
+			if (msg.length > 0 && !this.botIsWriting) {
+				this.pushUserEntry(msg)
+				this.currentUserMessage = ''
+			}
+		},
+		promptMessage (prompt) {
+			this.currentUserMessage = prompt
+			this.userSendMessage()
 		},
 		dismiss () {
 			console.log('Fechando ChatWindow...')
@@ -108,7 +151,7 @@ export default {
 
 <style scoped>
 	.chat {
-	    background: #fff none repeat scroll 0 0;
+	    background: rgba(0,0,0,.1) none repeat scroll 0 0;
 	    height: 100%;
 	    left: 0;
 	    position: fixed;
@@ -126,12 +169,33 @@ export default {
 	}
 	.chat-content {
 	    bottom: 0;
+	    position: absolute;
+	    right: 0;
+	    left: 50%;
+	    max-width: 800px;
+	    min-height: 80%;
+	    top: 50%;
+	    transform: translate(-50%, -50%);
+	    width: 80%;
+	}
+	.chat-oldMessages {
+	    display: initial;
+	    background: rgba(255,255,255,.9) none repeat scroll 0 0;
+	    height: 100px;
 	    left: 0;
+	    overflow-x: hidden;
+	    overflow-y: scroll;
+	    padding-right: 20px;
 	    position: absolute;
 	    right: 0;
 	    top: 0;
+	    text-align: left;
+	    padding-left: 0;
 	}
-	.entryHub {
+	.chat-oldMessages .chat-messages {
+		color: #fff;
+	}
+	.chat-messages {
 		list-style: none;
 		background: #fff none repeat scroll 0 0;
 	    border-top: 1px solid #666;
@@ -140,14 +204,26 @@ export default {
 	    overflow-x: hidden;
 	    overflow-y: scroll;
 	    position: absolute;
-	    top: 0;
+	    top: 100px;
 	    width: 100%;
 	    padding: 0;
+	    height: auto;
+	    text-align: left;
 	}
-	.entry {
+	.chat-message {
 		display: block;
-	    /*opacity: 0.5;*/
-	    padding: 5px;
+	    opacity: 0.5;
+	    display: flex;
+    	padding: 0;
+    	color: #000;
+	}
+	.chat-message.is-last {
+	    opacity: 1;
+	}
+	.chat-message.is-last.is-bot {
+		font-size: 35px;
+	    letter-spacing: 0;
+	    line-height: 40px;
 	}
 	.sender {
 		display: block;
@@ -169,6 +245,10 @@ export default {
 		flex: 1 1 auto;
     	padding: 10px;
 	}
+	.chat-message.is-user .messageText {
+		color: #42b983;
+		text-transform: uppercase;
+	}
 	.messageText {
 		box-sizing: border-box;
 	    color: #000;
@@ -180,8 +260,26 @@ export default {
 	    transition-duration: 0.3s;
 	    transition-property: font-size;
 	}
-	.userMessage {
-		background: #efefef;
+	.chat-message.is-last .chat-prompts {
+	    display: flex;
+	    justify-content: center;
+	}
+	.chat-prompts button {
+		transition: color 0.4s ease;
+	    background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
+	    border: 2px solid #000;
+	    color: #000;
+	    font-size: 14px;
+	    letter-spacing: 1.4px;
+	    line-height: 1;
+	    margin: 10px;
+	    padding: 5px 10px;
+	    cursor: pointer;
+	    font-weight: bold;
+	    text-transform: uppercase;
+	}
+	.chat-prompts button:hover {
+	    color: #42b983;
 	}
 	.inputContainer {
 		align-items: center;
@@ -217,11 +315,5 @@ export default {
 	}
 	.chat-input:focus {
 	    outline: 0 none;
-	}
-	.entryFade-enter-active, .entryFade-leave-active {
-	  transition: opacity 0.3s ease;
-	}
-	.entryFade-enter, .entryFade-leave-active {
-	  opacity: 0;
 	}
 </style>

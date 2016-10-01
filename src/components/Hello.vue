@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-  	<a href="javascript:;" @click="this.dismiss"><i class="ion-close"></i></a>
+  	<!-- <a href="javascript:;" @click="this.dismiss"><i class="ion-close"></i></a> -->
     <h1>{{ msg }}</h1>
     <a href="javascript:;" @click="this.begin">{{letsBegin}}</a>
   </div>
