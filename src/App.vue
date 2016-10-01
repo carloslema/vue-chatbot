@@ -12,21 +12,14 @@
 <script>
 import Hello from './components/Hello'
 import ChatWindow from './components/ChatWindow'
-import bus from './events/EventBus.js'
+import store from './store/BotStore.js'
 
 export default {
   data () {
-    return {
-      botName: 'Botzão',
-      helloIsOpen: false,
-      chatIsOpen: false
-    }
+    return store
   },
   mounted () {
     this.helloIsOpen = true
-    bus.$on('BEGIN', this.begin)
-    bus.$on('DISMISS-HELLO', () => { this.helloIsOpen = false })
-    bus.$on('DISMISS-CHATWINDOW', this.dismissChatwindow)
   },
   methods: {
     begin () {

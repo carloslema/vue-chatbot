@@ -42,107 +42,26 @@
 </template>
 
 <script>
-import bus from '../events/EventBus.js'
-import Vue from 'vue'
-import _ from 'lodash'
+import store from '../store/BotStore.js'
 
 export default {
-	props: {
-		botName: { type: String, default: 'Botzão' }
-	},
 	data () {
-		return {
-			userName: 'Você',
-			entries: [],
-			oldEntries: [],
-			firstMessage: 'Olá, eu sou o ' + this.botName + ' e vou conversar com você. O que você quer saber de mim?',
-			currentUserMessage: '',
-			botDidNotUnderstand: [
-				'Desculpe, não entendi muito bem o que disse.',
-				'Não sei do que você está falando.',
-				'Pode tentar dizer algo mais coerente?'
-			],
-			botIsWriting: false,
-			botTypingSpeed: 75,
-			botPauseOnPunctuation: 300
-		}
+		return store
 	},
 	mounted () {
+		this.entries = []
 		this.$refs.chatInput.focus()
-		this.pushBotEntry(this.firstMessage)
-		bus.$emit('CHATWINDOW-OPENED-ONCE')
+		this.$refs.chatOldMessages.scrollTop = this.$refs.chatOldMessages.scrollHeight
+		let prompts = (!this.chatWindowOpenedOnce) ? ['Você é burro?'] : ['Me fala sobre a VX!']
+		this.pushBotEntry(this.firstMessage, prompts)
+		setTimeout(() => {
+			this.chatWindowOpenedOnce = true
+		}, 1000)
 	},
 	methods: {
-		pushUserEntry (message) {
-			let sender = this.userName
-			let answer = null
-			let prompts = []
-			this.oldEntries = this.oldEntries.concat(this.entries)
-			this.entries = []
-			this.entries.push({ sender, message })
-
-			if (message.indexOf('teste') >= 0) {
-				answer = 'Que bom que você me testou! Em breve ficarei mais inteligente.'
-				prompts = ['Legal!', 'Problema seu.']
-			}
-			this.$nextTick(() => {
-				this.$refs.chatOldMessages.scrollTop = this.$refs.chatOldMessages.scrollHeight
-			})
-			this.pushBotEntry(answer, prompts)
-		},
-		pushBotEntry (message = null, prompts) {
-			let sender = this.botName
-
-			this.botIsWriting = true
-
-			if (message == null) {
-				message = this.botDidNotUnderstand[Math.floor(Math.random() * this.botDidNotUnderstand.length)]
-			}
-			setTimeout(() => {
-				this.entries.push({ sender, message: '', prompts: [] })
-		    	let item = this.entries[this.entries.length - 1]
-		        this.writeMessage(item, message, 0, prompts)
-			}, 500)
-		},
-		writeMessage (item, message, i, prompts) {
-			let rand = Math.floor(Math.random() * this.botTypingSpeed)
-			let m = item.message += message.charAt(i)
-			let punctuation = ['.', ',', '!', '?']
-
-			_.forEach(punctuation, (d) => {
-				if (m.charAt(m.length - 1) === d) rand = this.botPauseOnPunctuation
-			})
-
-			setTimeout(() => {
-				this.commitBotPartialMessage(item, m)
-				i++
-		        if (i <= message.length) {
-		            this.writeMessage(item, message, i, prompts)
-		        } else {
-		        	this.botIsWriting = false
-		        	_.forEach(prompts, (d) => {
-		        		item.prompts.push(d)
-		        	})
-		        }
-			}, rand)
-		},
-		commitBotPartialMessage (item, message) {
-	    	Vue.set(item, 'message', message)
-		},
-		userSendMessage () {
-			let msg = this.currentUserMessage
-			if (msg.length > 0 && !this.botIsWriting) {
-				this.pushUserEntry(msg)
-				this.currentUserMessage = ''
-			}
-		},
-		promptMessage (prompt) {
-			this.currentUserMessage = prompt
-			this.userSendMessage()
-		},
 		dismiss () {
-			console.log('Fechando ChatWindow...')
-  			bus.$emit('DISMISS-CHATWINDOW')
+			this.chatIsOpen = false
+      		this.helloIsOpen = true
 		}
 	}
 }
@@ -180,7 +99,7 @@ export default {
 	}
 	.chat-oldMessages {
 	    display: initial;
-	    background: rgba(255,255,255,.9) none repeat scroll 0 0;
+	    background: rgba(255,255,255, 0) none repeat scroll 0 0;
 	    height: 100px;
 	    left: 0;
 	    overflow-x: hidden;
@@ -231,13 +150,14 @@ export default {
 	.sender, .inputLabel {
 		font-family: AvenirLT-Heavy;
 	    font-size: 12px;
+	    line-height: 12px;
 	    color: grey;
 	    letter-spacing: 1px;
 	    padding: 10px;
 	    text-transform: uppercase;
 	    -webkit-flex: 0 0 80px;
 	    -ms-flex: 0 0 80px;
-	    flex: 0 0 80px;
+	    flex: 0 0 120px;
 	    box-sizing: border-box;
 	    display: block;
 	}
