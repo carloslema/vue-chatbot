@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import store from '../store/BotStore.js'
+import store from './BotStore.js'
 
 export default {
   data () {

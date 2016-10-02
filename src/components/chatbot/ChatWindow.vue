@@ -14,6 +14,8 @@
 					</div>
 				</li>
 			</ul>
+			<!-- <i class="ion-chevron-up chat-arrow" @mousedown="scrollUp"></i>
+			<i class="ion-chevron-up chat-arrow chat-arrow--down" @mousedown="scrollDown"></i> -->
 			<ul class="chat-messages">
 				<li 
 					class="chat-message is-last" 
@@ -42,7 +44,7 @@
 </template>
 
 <script>
-import store from '../store/BotStore.js'
+import store from './BotStore.js'
 
 export default {
 	data () {
@@ -52,13 +54,19 @@ export default {
 		this.entries = []
 		this.$refs.chatInput.focus()
 		this.$refs.chatOldMessages.scrollTop = this.$refs.chatOldMessages.scrollHeight
-		let prompts = (!this.chatWindowOpenedOnce) ? ['Você é burro?'] : ['Me fala sobre a VX!']
+		let prompts = (!this.chatWindowOpenedOnce) ? ['Você é burro?'] : ['O que você acha da Zetra?']
 		this.pushBotEntry(this.firstMessage, prompts)
 		setTimeout(() => {
 			this.chatWindowOpenedOnce = true
 		}, 1000)
 	},
 	methods: {
+		scrollUp () {
+			this.$refs.chatOldMessages.scrollTop = this.$refs.chatOldMessages.scrollTop - 40
+		},
+		scrollDown () {
+			this.$refs.chatOldMessages.scrollTop = this.$refs.chatOldMessages.scrollTop + 40
+		},
 		dismiss () {
 			this.chatIsOpen = false
       		this.helloIsOpen = true
@@ -69,6 +77,16 @@ export default {
 </script>
 
 <style scoped>
+	.chat-arrow {
+	    display: initial;
+	    position: absolute;
+	    right: 0;
+	    top: 2px;
+	}
+	.chat-arrow--down {
+	    top: 88px;
+	    transform: rotateZ(180deg);
+	}
 	.chat {
 	    background: rgba(0,0,0,.1) none repeat scroll 0 0;
 	    height: 100%;
@@ -128,6 +146,7 @@ export default {
 	    padding: 0;
 	    height: auto;
 	    text-align: left;
+	    margin-bottom: 0;
 	}
 	.chat-message {
 		display: block;
@@ -157,7 +176,7 @@ export default {
 	    text-transform: uppercase;
 	    -webkit-flex: 0 0 80px;
 	    -ms-flex: 0 0 80px;
-	    flex: 0 0 120px;
+	    flex: 0 0 80px;
 	    box-sizing: border-box;
 	    display: block;
 	}
@@ -189,8 +208,7 @@ export default {
 	    background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
 	    border: 2px solid #000;
 	    color: #000;
-	    font-size: 14px;
-	    letter-spacing: 1.4px;
+	    font-size: 12px;
 	    line-height: 1;
 	    margin: 10px;
 	    padding: 5px 10px;

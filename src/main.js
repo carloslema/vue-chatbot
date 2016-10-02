@@ -1,8 +1,8 @@
 import Vue from 'vue'
-import App from './App'
+import Chatbot from './components/chatbot/Chatbot'
 
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
-  render: h => h(App)
+  render: h => h(Chatbot)
 })

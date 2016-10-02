@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import _ from 'lodash'
-import BotAnswerGenerator from '../utils/BotAnswerGenerator.js'
+import BotAnswerGenerator from './BotAnswerGenerator.js'
 
 const store = {
 	helloIsOpen: false,

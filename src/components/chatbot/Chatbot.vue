@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="Chatbot">
     <transition name="helloTrans">
       <hello v-show="helloIsOpen" :bot-name="this.botName"></hello>
     </transition>
@@ -10,9 +10,9 @@
 </template>
 
 <script>
-import Hello from './components/Hello'
-import ChatWindow from './components/ChatWindow'
-import store from './store/BotStore.js'
+import Hello from './Hello'
+import ChatWindow from './ChatWindow'
+import store from './BotStore.js'
 
 export default {
   data () {
@@ -51,7 +51,7 @@ body {
   background: #fff;
 }
 
-#app {
+#Chatbot {
   color: #2c3e50;
   margin-top: -100px;
   max-width: 600px;
@@ -59,7 +59,7 @@ body {
   text-align: center;
 }
 
-#app a {
+#Chatbot a {
   color: #42b983;
   text-decoration: none;
 }
@@ -75,7 +75,7 @@ body {
   opacity: 0;
 }
 .chatwindowTrans-enter-active, .chatwindowTrans-leave-active {
-  transition: opacity 2s ease;
+  transition: opacity 1s ease;
 }
 .chatwindowTrans-enter, .chatwindowTrans-leave-active {
   opacity: 0;
