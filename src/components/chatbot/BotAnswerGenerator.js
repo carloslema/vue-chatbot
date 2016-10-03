@@ -1,6 +1,19 @@
 import _ from 'lodash'
+import db from '../utils/Firebase'
 
 const botAnswerGenerator = {
+	ready () {
+		db.ref('respostas/').on('value', (snapshot) => {
+			_.forEach(snapshot.val(), (d) => {
+				let resposta = {
+					regex: d.regex,
+					botMessage: d.botMessage,
+					noTalking: d.noTalking
+				}
+				this.tests.push(resposta)
+			})
+		})
+	},
 	userMessage: '',
 	botDontWannaTalk: false,
 	botDidNotUnderstand: [
@@ -18,18 +31,7 @@ const botAnswerGenerator = {
 		'Você é muito burro!',
 		'E os Press-kits?'
 	],
-	tests: [
-		{ regex: 'press-kits', botMessage: { message: 'KKKKKKK R-O-U-B-A-D-O-S!!', prompts: ['E você ri?'] } },
-		{ regex: 'e você ri', botMessage: { message: 'Rir é o melhor remédio. Já ao Matheus, só resta chorar mesmo. KKKKK', prompts: [] } },
-		{ regex: 'vx', botMessage: { message: 'O que falar da VX? Só o Desenvolvedor Supremo que salva.', prompts: ['Concordo', 'Concordo', 'Concordo, mas e a Zetra?'] } },
-		{ regex: 'concordo', botMessage: { message: 'Eu sei.', prompts: ['O que você pensa do Desenvolvedor Supremo?'] } },
-		{ regex: 'desenvolvedor supremo', botMessage: { message: 'Pra muitos, o melhor. Para mim, insuperável.', prompts: ['E os press-kits?'] } },
-		{ regex: 'zetra', botMessage: { message: 'O Junior sempre diz que tem que jogar uma bomba na Zetra. Eu gosto do Romero pois ele tem o espírito jovem.', prompts: ['Ficou sabendo dos Press-kits?'] } },
-		{ regex: 'acha da zetra', botMessage: { message: 'Um lugar onde os sonhos têm valor.', prompts: ['Não confundiu com a VX?'] } },
-		{ regex: 'burro', botMessage: { message: 'Burro é você!', prompts: ['Desculpa, era só um teste'] } },
-		{ regex: 'burro mesmo', botMessage: { message: 'Não quero mais conversar.', noTalking: true } },
-		{ regex: 'teste', botMessage: { message: 'Obrigado por ter me testado!', prompts: ['Me fala sobre a VX!', 'Mas você é burro ou não?'] } }
-	],
+	tests: [],
 	getAnswer (userMessage) {
 		let botMessage = {
 			message: this.botDidNotUnderstand[this.rng(this.botDidNotUnderstand.length)].message,
@@ -57,5 +59,7 @@ const botAnswerGenerator = {
 		return new RegExp(regex).test(this.userMessage.toLowerCase())
 	}
 }
+
+botAnswerGenerator.ready()
 
 export default botAnswerGenerator
