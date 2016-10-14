@@ -8,14 +8,16 @@ const botAnswerGenerator = {
 				let resposta = {
 					regex: d.regex,
 					botMessage: d.botMessage,
-					noTalking: d.noTalking
+					noTalking: d.noTalking,
+					ref: d.ref,
+					correct: d.correct,
+					wrong: d.wrong
 				}
-				this.tests.push(resposta)
+				this.answers.push(resposta)
 			})
 		})
 	},
 	userMessage: '',
-	botDontWannaTalk: false,
 	botDidNotUnderstand: [
 		{ message: 'Desculpe, não entendi muito bem o que você disse.' },
 		{ message: 'Pode tentar dizer algo mais coerente?' },
@@ -25,32 +27,37 @@ const botAnswerGenerator = {
 		{ message: 'Muito bom você ter dito isso. Pena que não entendi nada.' }
 	],
 	randomPrompts: [
-		'Só quis fazer um teste',
-		'Me fala sobre a VX!',
-		'O que você acha da Zetra?',
-		'Você é muito burro!',
-		'E os Press-kits?'
+		'Começar'
 	],
-	tests: [],
-	getAnswer (userMessage) {
+	answers: [],
+	getAnswer (userMessage, ref) {
+		if (!ref) return this.getAnswerByRef('first')
+		if (ref === 'last') return this.getAnswerByRef('lastMessage')
 		let botMessage = {
 			message: this.botDidNotUnderstand[this.rng(this.botDidNotUnderstand.length)].message,
-			prompts: [ this.randomPrompts[this.rng(this.randomPrompts.length)] ]
+			prompts: [ this.randomPrompts[this.rng(this.randomPrompts.length)] ],
+			regex: 'teste',
+			wrong: 124,
+			correct: 123
 		}
 		if (this.rng(2) === 1) {
 			let bonusPrompt = this.randomPrompts[this.rng(this.randomPrompts.length)]
 			if (botMessage.prompts[0] !== bonusPrompt) botMessage.prompts.push(bonusPrompt)
 		}
 		this.userMessage = userMessage
-		_.forEach(this.tests, (d) => {
-			if (this.match(d.regex)) botMessage = d.botMessage
-		})
-		if (this.botDontWannaTalk) {
-			botMessage = { message: '...', prompts: [] }
-			this.botDontWannaTalk = false
+
+		let previousAnswer = this.getAnswerByRef(ref)
+
+		if (this.match(previousAnswer.regex)) {
+			botMessage = this.getAnswerByRef(previousAnswer.correct)
+		} else {
+			if (previousAnswer.wrong) botMessage = this.getAnswerByRef(previousAnswer.wrong)
 		}
-		if (botMessage.noTalking) this.botDontWannaTalk = true
+
 		return botMessage
+	},
+	getAnswerByRef (ref) {
+		return _.find(this.answers, { ref })
 	},
 	rng (number) {
 		return Math.floor(Math.random() * number)

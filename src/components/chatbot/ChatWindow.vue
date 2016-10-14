@@ -33,9 +33,9 @@
 				</li>
 			</ul>
 			<div class="inputContainer">
-				<span class="inputLabel">Pergunte</span>
+				<span class="inputLabel" :class="{ 'stroke': previousAnswerRef === 'lastMessage' }">Pergunte</span>
 				<div class="chat-inputform">
-					<input ref="chatInput" class="chat-input" type="text" @keyup.enter="userSendMessage" v-model="currentUserMessage" />
+					<input :disabled="previousAnswerRef === 'lastMessage'" ref="chatInput" class="chat-input" type="text" @keyup.enter="userSendMessage" v-model="currentUserMessage" />
 				</div>
 			</div>
 		</div>
@@ -52,9 +52,10 @@ export default {
 	},
 	mounted () {
 		this.entries = []
+		this.previousAnswerRef = null
 		this.$refs.chatInput.focus()
 		this.$refs.chatOldMessages.scrollTop = this.$refs.chatOldMessages.scrollHeight
-		let prompts = (!this.chatWindowOpenedOnce) ? ['Você é burro?'] : ['O que você acha da Zetra?']
+		let prompts = (!this.chatWindowOpenedOnce) ? ['Vamos começar!'] : ['Vamos começar de novo!']
 		this.pushBotEntry(this.firstMessage, prompts)
 		setTimeout(() => {
 			this.chatWindowOpenedOnce = true
@@ -68,6 +69,8 @@ export default {
 			this.$refs.chatOldMessages.scrollTop = this.$refs.chatOldMessages.scrollTop + 40
 		},
 		dismiss () {
+			this.oldEntries.concat(this.entries)
+			console.log(this.oldEntries)
 			this.chatIsOpen = false
       		this.helloIsOpen = true
 		}
@@ -77,6 +80,9 @@ export default {
 </script>
 
 <style scoped>
+	.stroke {
+		text-decoration: line-through;
+	}
 	.chat-arrow {
 	    display: initial;
 	    position: absolute;

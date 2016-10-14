@@ -14,6 +14,7 @@ const store = {
 	botIsWriting: false,
 	botTypingSpeed: 75,
 	botPauseOnPunctuation: 300,
+	previousAnswerRef: null,
 	get helloPopupMessage () {
 		return (!this.chatWindowOpenedOnce) ? 'Oi! Me chamo ' + this.botName + '.' : ''
 	},
@@ -23,7 +24,7 @@ const store = {
 	get firstMessage () {
 		let msg
 		if (!this.chatWindowOpenedOnce) {
-			msg = 'Olá, eu sou o ' + this.botName + ' e vou conversar com você. O que você quer saber de mim?'
+			msg = 'Olá, eu sou o ' + this.botName + ' e vou conversar com você. Digite alguma coisa para começar!'
 		} else {
 			msg = 'Voltou? Vamos continuar conversando!'
 		}
@@ -41,7 +42,9 @@ const store = {
 	pushBotEntry (entry = null, prompts = null) {
 		let botMessage = { message: entry, prompts: prompts }
 		if (entry == null) {
-			botMessage = BotAnswerGenerator.getAnswer(this.currentUserMessage)
+			let answer = BotAnswerGenerator.getAnswer(this.currentUserMessage, this.previousAnswerRef)
+			botMessage = answer.botMessage
+			this.previousAnswerRef = answer.ref
 		}
 		this.botIsWriting = true
 		setTimeout(() => {
